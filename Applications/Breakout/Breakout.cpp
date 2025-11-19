@@ -9,13 +9,13 @@ extern ui8_t palette_vga[256][3];
 
 static const ui16_t SCREEN_WIDTH = 640;
 static const ui16_t SCREEN_HEIGHT = 400;
-static const ui8_t COLOR_PLAYER1 = 9;    // Blue
-static const ui8_t COLOR_PLAYER2 = 12;   // Red
-static const ui8_t COLOR_PADDLE1 = 12;   // Red
-static const ui8_t COLOR_PADDLE2 = 9;    // Blue
-static const ui8_t COLOR_BRICK_RED = 12;
-static const ui8_t COLOR_BRICK_GREEN = 10;
-static const ui8_t COLOR_BRICK_YELLOW = 14;
+static const ui8_t COLOR_PLAYER1 = 1;    // Blue (bleu foncé)
+static const ui8_t COLOR_PLAYER2 = 4;    // Red (rouge foncé)
+static const ui8_t COLOR_PADDLE1 = 4;    // Red (rouge foncé)
+static const ui8_t COLOR_PADDLE2 = 1;    // Blue (bleu foncé)
+static const ui8_t COLOR_BRICK_RED = 4;   // Rouge foncé
+static const ui8_t COLOR_BRICK_GREEN = 2; // Vert foncé
+static const ui8_t COLOR_BRICK_YELLOW = 6; // Jaune/Marron
 static const ui8_t COLOR_POWERUP_ICON = 15;
 static const int BALL_SPEED_PERIOD = 6;
 static const int PADDLE_SPEED_PERIOD = 6;
