@@ -7,7 +7,7 @@
 
 ui8_t* EcranBochs::VRAM;
 
-EcranBochs::EcranBochs(ui16_t width, ui16_t height, VBE_MODE mode): width(width), height(height), mode(mode), topBuffer(false), framebuffer(VRAM) {
+EcranBochs::EcranBochs(ui16_t width, ui16_t height, VBE_MODE mode): width(width), height(height), mode(mode), topBuffer(true), framebuffer(VRAM) {
 
 }
 

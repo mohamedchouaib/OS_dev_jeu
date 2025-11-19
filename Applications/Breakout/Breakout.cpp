@@ -9,11 +9,13 @@ extern ui8_t palette_vga[256][3];
 
 static const ui16_t SCREEN_WIDTH = 640;
 static const ui16_t SCREEN_HEIGHT = 400;
-static const ui8_t COLOR_PLAYER1 = 14;   // Yellow
-static const ui8_t COLOR_PLAYER2 = 11;   // Cyan
-static const ui8_t COLOR_BRICK_GREEN = 10;
-static const ui8_t COLOR_BRICK_BLUE = 9;
+static const ui8_t COLOR_PLAYER1 = 9;    // Blue
+static const ui8_t COLOR_PLAYER2 = 12;   // Red
+static const ui8_t COLOR_PADDLE1 = 12;   // Red
+static const ui8_t COLOR_PADDLE2 = 9;    // Blue
 static const ui8_t COLOR_BRICK_RED = 12;
+static const ui8_t COLOR_BRICK_GREEN = 10;
+static const ui8_t COLOR_BRICK_YELLOW = 14;
 static const ui8_t COLOR_POWERUP_ICON = 15;
 static const int BALL_SPEED_PERIOD = 6;
 static const int PADDLE_SPEED_PERIOD = 6;
@@ -21,8 +23,13 @@ static const int BASE_BALL_SPEED_Y = 2;
 static const int MIN_BALL_SPEED_X = 1;
 static const int MAX_BALL_SPEED_X = 3;
 static const ui16_t BALL_DEFAULT_SIZE = 12;
+static const ui16_t PADDLE_WIDTH = 60;
+static const ui16_t PADDLE_HEIGHT = 8;
+static const ui16_t PADDLE_MARGIN = 70;
 static const ui16_t PADDLE1_Y = SCREEN_HEIGHT - 18;
 static const ui16_t PADDLE2_Y = SCREEN_HEIGHT - 36;
+static const ui16_t PADDLE1_START_X = PADDLE_MARGIN;
+static const ui16_t PADDLE2_START_X = SCREEN_WIDTH - PADDLE_MARGIN - PADDLE_WIDTH;
 
 struct Glyph { char c; unsigned char rows[5]; };
 
@@ -142,20 +149,24 @@ Breakout::Breakout() : score1(0), score2(0), activeBalls(2), gameRunning(true),
                        lives1(PLAYER_LIVES), lives2(PLAYER_LIVES), tickCounter(0),
                        keyLeft1(false), keyRight1(false), keyLeft2(false), keyRight2(false) {
     
-    // Initialize paddles on the same (bottom) side
-    paddle1 = Paddle(280, PADDLE1_Y, 60, 8, 15);  // Player 1 closest to the edge
-    paddle2 = Paddle(280, PADDLE2_Y, 60, 8, 11);  // Player 2 just above
+    // Initialize paddles with spaced horizontal positions
+    paddle1 = Paddle(PADDLE1_START_X, PADDLE1_Y, PADDLE_WIDTH, PADDLE_HEIGHT, COLOR_PADDLE1);
+    paddle2 = Paddle(PADDLE2_START_X, PADDLE2_Y, PADDLE_WIDTH, PADDLE_HEIGHT, COLOR_PADDLE2);
     paddle1.setSpeed(3);
     paddle2.setSpeed(3);
     paddle1.setBounds(8, SCREEN_WIDTH - paddle1.getWidth() - 8);
     paddle2.setBounds(8, SCREEN_WIDTH - paddle2.getWidth() - 8);
     
-    // Player 1 ball (moves upward)
-    balls[0] = Ball(320, paddle1.getY() - BALL_DEFAULT_SIZE, BALL_DEFAULT_SIZE, COLOR_PLAYER1, OWNER_PLAYER1);
+    // Player 1 ball (moves upward above player 1 paddle)
+    si32_t ball1StartX = paddle1.getX() + paddle1.getWidth() / 2 - BALL_DEFAULT_SIZE / 2;
+    si32_t ball1StartY = paddle1.getY() - BALL_DEFAULT_SIZE;
+    balls[0] = Ball(ball1StartX, ball1StartY, BALL_DEFAULT_SIZE, COLOR_PLAYER1, OWNER_PLAYER1);
     balls[0].setVelocity(clampHorizontalSpeed(1), -BASE_BALL_SPEED_Y);
 
-    // Player 2 ball (also moves upward from second paddle)
-    balls[1] = Ball(320, paddle2.getY() - BALL_DEFAULT_SIZE, BALL_DEFAULT_SIZE, COLOR_PLAYER2, OWNER_PLAYER2);
+    // Player 2 ball (moves upward from second paddle)
+    si32_t ball2StartX = paddle2.getX() + paddle2.getWidth() / 2 - BALL_DEFAULT_SIZE / 2;
+    si32_t ball2StartY = paddle2.getY() - BALL_DEFAULT_SIZE;
+    balls[1] = Ball(ball2StartX, ball2StartY, BALL_DEFAULT_SIZE, COLOR_PLAYER2, OWNER_PLAYER2);
     balls[1].setVelocity(clampHorizontalSpeed(-1), -BASE_BALL_SPEED_Y);
 
     // Other balls inactive
@@ -178,10 +189,10 @@ void Breakout::initBricks() {
 
     const ui8_t rowColors[BRICKS_ROWS] = {
         COLOR_BRICK_RED,
-        COLOR_BRICK_BLUE,
         COLOR_BRICK_GREEN,
+        COLOR_BRICK_YELLOW,
         COLOR_BRICK_GREEN,
-        COLOR_BRICK_GREEN
+        COLOR_BRICK_YELLOW
     };
     const int rowHP[BRICKS_ROWS] = {3, 2, 1, 1, 1};
     
@@ -223,22 +234,23 @@ void Breakout::checkBallWallCollision(Ball &ball) {
     if (!ball.isActive()) return;
     
     // Left and right walls
-    if (ball.getX() <= 0) {
+    if (ball.getX() <= 0 && ball.getVX() < 0) {
         ball.setPosition(0, ball.getY());
         ball.setVelocity(clampHorizontalSpeed(-ball.getVX()), ball.getVY());
-    } else if (ball.getX() >= SCREEN_WIDTH - ball.getSize()) {
+    } else if (ball.getX() >= SCREEN_WIDTH - ball.getSize() && ball.getVX() > 0) {
         ball.setPosition(SCREEN_WIDTH - ball.getSize(), ball.getY());
         ball.setVelocity(clampHorizontalSpeed(-ball.getVX()), ball.getVY());
     }
     
     // Top wall simply bounces
-    if (ball.getY() <= 0) {
+    if (ball.getY() <= 0 && ball.getVY() < 0) {
+        ball.setPosition(ball.getX(), 0);
         ball.reverseY();
         return;
     }
     
     // Bottom wall means both players missed (penalize owner)
-    if (ball.getY() >= SCREEN_HEIGHT - ball.getSize()) {
+    if (ball.getY() >= SCREEN_HEIGHT - ball.getSize() && ball.getVY() > 0) {
         handleBallMiss(ball, ball.getOwner());
         return;
     }
