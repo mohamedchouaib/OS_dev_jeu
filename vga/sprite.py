@@ -18,6 +18,9 @@ import re
 from PIL import Image
 import argparse
 
+
+
+
 def parse_jasc_pal(path):
     """Parse un fichier JASC-PAL (.pal) en liste de 256 tuples RGB."""
     with open(path, 'r') as f:
